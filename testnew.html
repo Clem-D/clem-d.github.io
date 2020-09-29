@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/konva@3.2.4/konva.min.js"></script>
+    <link rel="stylesheet" href="css/all.min.css">
+    <meta charset="utf-8" />
+    <title>Konva Editable Text on html5 canvas Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+      .ebox {
+        position: absolute;
+        top: 10px;
+        left: 100px;
+      }
+      i.ebutton.far,i.ebutton.fas, i.ebutton.fal {
+        position: absolute;
+        top: -18px;
+        left: 132px;
+        display: inline-block;
+        border-radius: 60px;
+        border: solid white 2px;
+        color: white;
+        width:18px;
+        height: 18px;
+        padding: 8px 8px;
+        background-color: #00afc9;
+      }
+      .econtrols {
+        position: absolute;
+        display: none;
+        top: 5px;
+        left: 0px;
+        width:300px;
+        height:100px;
+        background-color: white;
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="params">
+
+      <input id="fontMaxSize" type='number' min='10' max='180' step='1' value='40'>
+      <input id="strokeWidthPct" type='number' min='0' max='10' step='0.1' value='3'>
+      <select id='align'>
+        <option value="left">Gauche</option>
+        <option value="right">Droite</option>
+        <option value="center">Centré</option>
+        <option value="justify">Justifié</option>
+      </select>
+      <input type="color" id="fill" value="#ffffff">
+      <input type="color" id="stroke" value="#000000">
+      <input type='checkbox' id='shadowEnabled' checked>
+      <input type='checkbox' id='uppercase' checked>
+      <textarea id="text" value="some text"></textarea>
+      <button id="save">Save</button>
+    </div>
+    <div id="container"></div>
+    <script src="js/meme.js"></script>  </body>
+</html>

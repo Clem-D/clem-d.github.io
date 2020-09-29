@@ -1,0 +1,13 @@
+.hidden{
+  display:none;
+}
+
+.gallery-img{
+  width: 150px;
+  height: 75px;
+  cursor: pointer;
+}
+
+.gallery-img-clicked{
+  border: 5px solid #AA2211;
+}

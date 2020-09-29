@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/konva@3.2.4/konva.min.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Editable Text on html5 canvas Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <input id="fontSize" type='range' min='10' max='180' step='1' value='20'>
+      <input id="strokeWidth" type='range' min='0' max='10' step='0.1' value='2'>
+      <select id='align'>
+        <option value="left">Gauche</option>
+        <option value="right">Droite</option>
+        <option value="center">Centré</option>
+        <option value="justify">Justifié</option>
+      </select>
+      <input type="color" id="fill" value="#ffffff">
+      <input type="color" id="stroke" value="#000000">
+      <textarea id="text" value="some text"></textarea>
+      <button id="save">Save</button>
+    </div>
+    <div id="container"></div>
+    <div id="editbox"></div>
+    <script>
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      var zoneId = 0;
+      var currentZone = 0;
+      var zones = [];
+
+      var stage = new Konva.Stage({
+        container: 'container',
+        width: width,
+        height: height
+      });
+
+      var layer = new Konva.Layer();
+
+      stage.add(layer);
+      var imageObj = new Image();
+      imageObj.setAttribute('crossOrigin', 'anonymous');
+      imageObj.onload = function() {
+        var yoda = new Konva.Image({
+          x: 0,
+          y: 0,
+          image: imageObj,
+          width: width,
+          height: height
+        });
+
+        // add the shape to the layer
+        layer.add(yoda);
+        createText(0,{
+          text: 'Some text here',
+          x: 50,
+          y: 80,
+          fontSize: 20,
+          draggable: true,
+          width: 300,
+          height:100,
+          stroke: 'black',
+          fill:'white',
+          strokeWidth: 0.4,
+          strokeWidthPct: 2
+        }, true);
+        createText(1,{
+          text: 'Other text here',
+          x: 50,
+          y: 280,
+          fontSize: 20,
+          draggable: true,
+          width: 300,
+          height:100,
+          stroke: 'black',
+          fill:'white',
+          strokeWidth: 0.4,
+          strokeWidthPct: 2
+        }, true);
+        currentZone = 0;
+        layer.draw();
+
+
+      };
+      imageObj.src = 'img_lights.jpg';
+
+      function createText(zoneid,tattrs,addToLayer) {
+        tattrs.zone = zoneid;
+        var tn = new Konva.Text(tattrs);
+        console.log(tn.attrs.zone);
+        var tr = new Konva.Transformer({
+          node: tn,
+          enabledAnchors: ['middle-left', 'middle-right','bottom-center'],
+          // set minimum width of text
+          boundBoxFunc: function(oldBox, newBox) {
+            //newBox.width = Math.max(30, newBox.width);
+            return newBox;
+          }
+        });
+
+        tr.on('transform', function() {
+
+          // reset scale, so only with is changing by transformer
+          tr.setAttrs({
+            width: tr.width() * tr.scaleX(),
+            height: tr.height() * tr.scaleY(),
+            scaleX: 1,
+            scaleY: 1,
+          });
+          tn.setAttrs({
+            width: tn.width() * tn.scaleX(),
+            height: tn.height() * tn.scaleY(),
+            scaleX: 1,
+            scaleY: 1,
+          });
+
+          //tr.forceUpdate();
+          layer.draw();
+
+        });
+        tn.on('click',() => {
+
+          zones[currentZone].box.setAttrs({ borderStrokeWidth : 1 });
+          currentZone = tn.attrs.zone;
+          zones[currentZone].box.setAttrs({ borderStrokeWidth : 3 });
+          document.getElementById('text').value = zones[currentZone].text.attrs.text;
+          layer.draw();
+        });
+        tn.on('dblclick', () => {
+
+          // hide text node and transformer:
+          tn.hide();
+          tr.hide();
+          layer.draw();
+
+          // create textarea over canvas with absolute position
+          // first we need to find position for textarea
+          // how to find it?
+
+          // at first lets find position of text node relative to the stage:
+          var textPosition = tn.absolutePosition();
+
+          // then lets find position of stage container on the page:
+          var stageBox = stage.container().getBoundingClientRect();
+
+          // so position of textarea will be the sum of positions above:
+          var areaPosition = {
+            x: stageBox.left + textPosition.x,
+            y: stageBox.top + textPosition.y
+          };
+
+          // create textarea and style it
+          var textarea = document.createElement('textarea');
+          document.body.appendChild(textarea);
+
+          // apply many styles to match text on canvas as close as possible
+          // remember that text rendering on canvas and on the textarea can be different
+          // and sometimes it is hard to make it 100% the same. But we will try...
+          textarea.value = tn.text();
+          textarea.style.position = 'absolute';
+          textarea.style.top = areaPosition.y + 'px';
+          textarea.style.left = areaPosition.x + 'px';
+          textarea.style.width = tn.width() - tn.padding() * 2 + 'px';
+          textarea.style.height = tn.height() - tn.padding() * 2 + 5 + 'px';
+          textarea.style.fontSize = tn.fontSize() + 'px';
+          textarea.style.border = 'none';
+          textarea.style.padding = '0px';
+          textarea.style.margin = '0px';
+          textarea.style.overflow = 'hidden';
+          textarea.style.background = 'none';
+          textarea.style.outline = 'none';
+          textarea.style.resize = 'none';
+          textarea.style.lineHeight = tn.lineHeight();
+          textarea.style.fontFamily = tn.fontFamily();
+          textarea.style.transformOrigin = 'left top';
+          textarea.style.textAlign = tn.align();
+          textarea.style.color = tn.fill();
+          rotation = tn.rotation();
+          var transform = '';
+          if (rotation) {
+            transform += 'rotateZ(' + rotation + 'deg)';
+          }
+
+          var px = 0;
+          // also we need to slightly move textarea on firefox
+          // because it jumps a bit
+          var isFirefox =
+            navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+          if (isFirefox) {
+            px += 2 + Math.round(fontSize / 20);
+          }
+          transform += 'translateY(-' + px + 'px)';
+
+          textarea.style.transform = transform;
+
+          // reset height
+          textarea.style.height = 'auto';
+          // after browsers resized it we can set actual value
+          textarea.style.height = textarea.scrollHeight + 3 + 'px';
+
+          textarea.focus();
+
+          function removeTextarea() {
+            textarea.parentNode.removeChild(textarea);
+            window.removeEventListener('click', handleOutsideClick);
+            tn.show();
+            tr.show();
+            tr.setAttrs({
+            width: tn.width(),
+            height: tn.height()
+            });
+            tr.forceUpdate();
+            layer.draw();
+          }
+
+          function setTextareaWidth(newWidth) {
+            if (!newWidth) {
+              // set width for placeholder
+              newWidth = tn.placeholder.length * tn.fontSize();
+            }
+            // some extra fixes on different browsers
+            var isSafari = /^((?!chrome|android).)*safari/i.test(
+              navigator.userAgent
+            );
+            var isFirefox =
+              navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            if (isSafari || isFirefox) {
+              newWidth = Math.ceil(newWidth);
+            }
+
+            var isEdge =
+              document.documentMode || /Edge/.test(navigator.userAgent);
+            if (isEdge) {
+              newWidth += 1;
+            }
+            textarea.style.width = newWidth + 'px';
+          }
+
+          textarea.addEventListener('keydown', function(e) {
+            // hide on enter
+            // but don't hide on shift + enter
+            //if (e.keyCode === 13 && !e.shiftKey) {
+            //  textNode.text(textarea.value);
+            //  removeTextarea();
+            //}
+            // on esc do not set value back to node
+            if (e.keyCode === 27) {
+              removeTextarea();
+            }
+          });
+
+          textarea.addEventListener('keydown', function(e) {
+            scale = tn.getAbsoluteScale().x;
+            setTextareaWidth(tn.width() * scale);
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + tn.fontSize() + 'px';
+          });
+
+          function handleOutsideClick(e) {
+            if (e.target !== textarea) {
+              tn.text(textarea.value);
+              removeTextarea();
+            }
+          }
+          setTimeout(() => {
+            window.addEventListener('click', handleOutsideClick);
+          });
+        });
+        if (addToLayer) {
+          layer.add(tn);
+          layer.add(tr);
+        }
+        zones[zoneid] = { 'text':tn,'box':tr };
+        zones[currentZone].box.setAttrs({ borderStrokeWidth : 3 });
+      }
+
+
+
+
+
+      document.getElementById('text').addEventListener('input', function(){
+        console.log(this.value);
+        var z = zones[currentZone];
+
+        var w = z.text.attrs.width;
+        var h = z.text.attrs.height;
+        var save = JSON.parse(JSON.stringify(z.text.attrs));
+        save.height = undefined;
+        save.text = this.value;
+        var eval = new Konva.Text(save);
+        console.log(w,h);
+        while ( save.fontSize > 10 && ( eval.height()>h || eval.width()>w )) {
+          save.fontSize -= 1;
+          eval.remove();
+          eval = new Konva.Text(save);
+          console.log(eval.width(),eval.height());
+
+        }
+        save.height = h;
+        eval.remove();
+        z.text.remove();
+        z.box.remove();
+        createText(currentZone,save, true);
+        layer.draw();
+
+      });
+
+      document.getElementById('save').addEventListener('click', function(){
+        var link = document.createElement("a");
+        link.download = 'planogram.jpg';
+        // Construct the uri
+        tr.hide();
+        layer.draw();
+        var uri = stage.toDataURL();
+        tr.show();
+        layer.draw();
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        // Cleanup the DOM
+        document.body.removeChild(link);
+      });
+
+      document.getElementById('fontSize').addEventListener('input', function(){
+        var z = zones[currentZone];
+        var save = JSON.parse(JSON.stringify(z.text.attrs));
+        var height = save.height;
+        save.height = undefined;
+        save.fontSize = this.value;
+        save.strokeWidth = this.value * save.strokeWidthPct / 100;
+        var zt = z.text;
+        var zb = z.box;
+        createText(currentZone,save, false);
+
+        if (zones[currentZone].text.height()>height) {
+          zones[currentZone].text.remove();
+          zones[currentZone].box.remove();
+          zones[currentZone].text = zt;
+          console.log(zt.text.height);
+          zones[currentZone].box = zb;
+          this.value = zt.attrs.fontSize;
+
+        } else {
+          zt.remove();
+          zb.remove();
+          save.height = height;
+          zones[currentZone].text.remove();
+          zones[currentZone].box.remove();
+
+          createText(currentZone,save, true);
+          console.log('h',zones[currentZone].text.height())
+        }
+        layer.draw();
+
+
+      });
+      document.getElementById('align').addEventListener('change', function(){
+        var z = zones[currentZone];
+        z.text.setAttrs({'align': this.value });
+        layer.draw();
+
+        //textNode.wrap('word');
+        //layer.draw();
+      });
+      document.getElementById('stroke').addEventListener('input', function(){
+        console.log('stroke');
+        var z = zones[currentZone];
+        z.text.setAttrs({'stroke': this.value });
+        z.box.setAttrs({
+          width: z.text.width(),
+          height: z.text.height()
+        });
+        z.box.forceUpdate();
+        layer.draw();
+      });
+      document.getElementById('fill').addEventListener('input', function(){
+        console.log('fill');
+        var z = zones[currentZone];
+        z.text.setAttrs({'fill': this.value });
+        //z.box.setAttrs({
+        //  width: z.text.width(),
+        //  height: z.text.height()
+        //});
+        //z.box.forceUpdate();
+        layer.draw();
+      });
+
+      document.getElementById('strokeWidth').addEventListener('input', function(){
+        var z = zones[currentZone];
+        var save = z.text.attrs;
+        save.strokeWidth = this.value * save.fontSize / 100;
+        console.log(this.value,save.strokeWidth);
+        z.text.remove();
+        z.box.remove();
+        var obj = createText(currentZone,save,true);
+        zones[currentZone].text.attrs.strokeWidthPct = this.value;
+
+        layer.draw();
+
+
+      });
+
+
+
+
+    </script>
+  </body>
+</html>
