@@ -1,0 +1,90 @@
+/* BACKGROUND */
+@keyframes animation_blob_shape {
+  0%, 100% {
+    border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%; }
+  14% {
+    border-radius: 40% 60% 54% 46% / 49% 60% 40% 51%; }
+  28% {
+    border-radius: 54% 46% 38% 62% / 49% 70% 30% 51%; }
+  42% {
+    border-radius: 61% 39% 55% 45% / 61% 38% 62% 39%; }
+  56% {
+    border-radius: 61% 39% 67% 33% / 70% 50% 50% 30%; }
+  70% {
+    border-radius: 50% 50% 34% 66% / 56% 68% 32% 44%; }
+  84% {
+    border-radius: 46% 54% 50% 50% / 35% 61% 39% 65%; } }
+@keyframes animation_blob_position1 {
+  0% {
+    transform: translate(-50px, -50px); }
+  15% {
+    transform: translate(-50px, -50px); }
+  50% {
+    transform: translate(100px, 100px) scale(0.9); }
+  75% {
+    transform: translate(150px, 200px) scale(1.4); }
+  100% {
+    transform: translate(-50px, -50px); } }
+@keyframes animation_blob_position2 {
+  0% {
+    transform: translate(50px, 50px); }
+  30% {
+    transform: translate(-150px, 200px) scale(0.9); }
+  70% {
+    transform: translate(-250px, -400px) scale(1.1); }
+  100% {
+    transform: translate(50px, 50px); } }
+/* HEADER */
+body {
+  height: 100%;
+  width: 100%; }
+
+.body-background {
+  background-color: #e6e8ef;
+  overflow: hidden; }
+  .body-background::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 25%;
+    bottom: 0;
+    background-color: #f6f6fa;
+    display: block;
+    height: 483px;
+    width: 600px;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    animation: animation_blob_shape 600s normal linear infinite , animation_blob_position2 400s normal infinite; }
+  .body-background::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    background-color: #f6f6fa;
+    display: block;
+    height: 583px;
+    width: 800px;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    animation: animation_blob_shape 600s normal linear infinite , animation_blob_position1 400s normal infinite; }
+
+.header {
+  background-color: #fff;
+  box-shadow: -1px 2px #00000010;
+  height: 70px;
+  position: relative;
+  z-index: 2; }
+  .header__logo {
+    position: absolute;
+    height: 80px; }
+  .header__menu {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    height: 70px;
+    list-style: none; }
+    .header__menu li {
+      padding: 0 30px; }
+    .header__menu li:last-child {
+      margin-left: auto; }
+
+/*# sourceMappingURL=main.css.map */
